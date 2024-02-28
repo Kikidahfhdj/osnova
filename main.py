@@ -6,13 +6,13 @@ posts = []
 
 app = Flask(__name__)
 
-class ComplexEncoder(json.JSONEncoder):
+class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Post):
             return {'body': obj.body, 'author': obj.author}
         else:
             return super().default(obj)
-app.json_encoder = ComplexEncoder
+app.json_encoder = CustomJSONEncoder
 
 @app.route('/ping', methods=['GET'])
 def ping():
@@ -26,11 +26,13 @@ def create_post():
     body = post_json.get('body')
     author = post_json.get('author')
     new_post = Post(body, author)
+    posts.append(new_post)
     return jsonify(new_post.to_json())
 
 @app.route('/post', methods=['GET'])
 def get_posts():
-    return jsonify({'posts': posts})
+    posts_json = [post.to_json() for post in posts]
+    return jsonify({'posts': posts_json})
 
 @app.route('/post', methods=['PUT'])
 def update_post():
